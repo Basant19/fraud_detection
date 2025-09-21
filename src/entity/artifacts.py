@@ -20,7 +20,7 @@ class DataTransformationArtifacts:
 
 
 
-'''
+
 
 # Model Training Stage Artifacts
 
@@ -32,6 +32,17 @@ class ModelTrainerArtifacts:
 
 
 
+
+
+@dataclass
+class HyperparameterTuningArtifacts:
+    tuned_model_path: str
+    best_params_path: str
+    best_score: float
+
+
+
+'''
 # ----------------------------
 # Model Evaluation Stage Artifacts
 # ----------------------------
@@ -40,4 +51,4 @@ class ModelEvaluationArtifacts:
     evaluation_report_path: str
     best_model_path: str
     is_model_accepted: bool
-'''
+    '''

@@ -1,8 +1,10 @@
 # D:\fraud_detection\src\pipeline\train_pipeline.py
 
-from src.entity.config import DataIngestionConfig, DataTransformationConfig
+from src.entity.config import DataIngestionConfig, DataTransformationConfig, ModelTrainerConfig
 from src.components.data_ingestion import DataIngestion
 from src.components.data_transformation import DataTransformation
+from src.components.model_trainer import ModelTrainer
+
 
 def start_training_pipeline():
     # ----------------------
@@ -22,9 +24,8 @@ def start_training_pipeline():
     # 2. Data Transformation
     # ----------------------
     transformation_config = DataTransformationConfig.get_default_config()
-    data_transformation = DataTransformation(transformation_config)
+    data_transformation = DataTransformation(transformation_config, resampling_strategy="smote_tomek")
 
-    # Pass the full ingestion_artifacts object, not individual paths
     transformation_artifacts = data_transformation.initiate_data_transformation(
         ingestion_artifact=ingestion_artifacts
     )
@@ -34,6 +35,19 @@ def start_training_pipeline():
     print(f" Transformed Test: {transformation_artifacts.transformed_test_path}")
     print(f" Preprocessor: {transformation_artifacts.preprocessor_path}")
     print(f" Feature Names: {transformation_artifacts.feature_names_path}")
+
+    # ----------------------
+    # 3. Model Training
+    # ----------------------
+    trainer_config = ModelTrainerConfig.get_default_config()
+    model_trainer = ModelTrainer(trainer_config)
+
+    model_artifacts = model_trainer.initiate_model_training(transformation_artifact=transformation_artifacts)
+
+    print("✅ Model Training Completed")
+    print(f"Best Model Path: {model_artifacts.trained_model_path}")
+    print(f" Training Score: {model_artifacts.training_score:.4f}")
+    print(f" Test (F2) Score: {model_artifacts.test_score:.4f}")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import numpy as np
 import pickle
+import json
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import TomekLinks
@@ -16,12 +17,12 @@ from src.logger import logging
 
 
 class DataTransformation:
-    def __init__(self, config: DataTransformationConfig, resampling_strategy: str = "smote"):
+    def __init__(self, config: DataTransformationConfig, resampling_strategy: str = "smote_tomek"):
         """
         resampling_strategy: "smote", "tomek", "smote_tomek"
         """
         self.config = config
-        self.label_encoder = LabelEncoder()  # For consistent encoding
+        self.label_encoder = LabelEncoder()
         self.resampling_strategy = resampling_strategy.lower()
 
     def initiate_data_transformation(
@@ -51,12 +52,11 @@ class DataTransformation:
                     df["gap"] = (df["Timestamp1"] - df["LastLogin_dt"]).dt.days.abs()
                     df["gap"] = df["gap"].fillna(df["gap"].median())
                 else:
-                    df["gap"] = 0  # fallback if columns missing
+                    df["gap"] = 0
 
                 # Drop identifiers + redundant timestamp cols
                 df = df.drop(
-                    columns=[c for c in drop_cols if c in df.columns]
-                    + ["Timestamp", "Timestamp1", "LastLogin", "LastLogin_dt"],
+                    columns=[c for c in drop_cols if c in df.columns] + ["Timestamp", "Timestamp1", "LastLogin", "LastLogin_dt"],
                     errors="ignore",
                 )
 
@@ -64,7 +64,7 @@ class DataTransformation:
                 for col in df.select_dtypes(include=["number"]).columns:
                     df[col] = df[col].fillna(df[col].median())
 
-                # Encode categorical "Category"
+                # Encode categorical
                 if "Category" in df.columns:
                     df["Category"] = df["Category"].fillna("Unknown")
                     if fit_encoder:
@@ -75,7 +75,7 @@ class DataTransformation:
 
                 return df
 
-            # Apply feature engineering (fit encoder on train, transform on test)
+            # Apply feature engineering
             train_df = feature_engineering(train_df, fit_encoder=True)
             test_df = feature_engineering(test_df, fit_encoder=False)
 
@@ -85,11 +85,10 @@ class DataTransformation:
 
             X_train = train_df.drop(columns=["FraudIndicator"])
             y_train = train_df["FraudIndicator"]
-
             X_test = test_df.drop(columns=["FraudIndicator"])
             y_test = test_df["FraudIndicator"]
 
-            # Numeric-only (after encoding)
+            # Numeric-only
             X_train = X_train.select_dtypes(include=[np.number]).copy()
             X_test = X_test.select_dtypes(include=[np.number]).copy()
 
@@ -115,30 +114,18 @@ class DataTransformation:
 
             # ---------------- Save Artifacts ----------------
             os.makedirs(os.path.dirname(self.config.preprocessor_path), exist_ok=True)
-
-            # Save preprocessing objects (scaler + label encoder) as a dict
-            preprocessor = {"scaler": scaler, "label_encoder": self.label_encoder,"feature_names": X_train.columns.tolist()}
+            preprocessor = {"scaler": scaler, "label_encoder": self.label_encoder, "feature_names": X_train.columns.tolist()}
             with open(self.config.preprocessor_path, "wb") as f:
                 pickle.dump(preprocessor, f)
 
-            # Save transformed data using np.savez
-            np.savez(
-                self.config.transformed_train_path,
-                X_train=X_train_resampled,
-                y_train=y_train_resampled
-            )
-            np.savez(
-                self.config.transformed_test_path,
-                X_test=X_test_scaled,
-                y_test=y_test
-            )
+            np.savez(self.config.transformed_train_path, X_train=X_train_resampled, y_train=y_train_resampled)
+            np.savez(self.config.transformed_test_path, X_test=X_test_scaled, y_test=y_test)
+
+            # Save feature names
+            with open(self.config.feature_names_path, "w") as f:
+                json.dump(X_train.columns.tolist(), f, indent=2)
 
             logging.info("Data transformation completed successfully.")
-            # Save feature names to JSON
-            import json
-            with open(self.config.feature_names_path, "w") as f:
-
-                json.dump(X_train.columns.tolist(), f, indent=2)
 
             return DataTransformationArtifacts(
                 transformed_train_path=self.config.transformed_train_path,

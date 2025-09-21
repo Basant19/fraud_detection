@@ -122,7 +122,7 @@ class DataTransformationConfig:
         )
 
 
-'''
+
 @dataclass
 class ModelTrainerConfig:
     trained_model_path: str = None
@@ -141,4 +141,33 @@ class ModelTrainerConfig:
             trained_model_path=os.path.join(base_dir, "best_model.pkl"),
             random_state=int(os.getenv("RANDOM_STATE", 42))
         )
-'''
+
+
+@dataclass
+class HyperparameterTuningConfig:
+    tuned_model_path: str = None
+    best_params_path: str = None
+    random_state: int = None
+    search_strategy: str = None  # "grid", "random", "optuna"
+
+    def __post_init__(self):
+        if self.tuned_model_path is None:
+            self.tuned_model_path = os.getenv("TUNED_MODEL_PATH", "artifacts/tuned_model.pkl")
+
+        if self.best_params_path is None:
+            self.best_params_path = os.getenv("BEST_PARAMS_PATH", "artifacts/best_params.json")
+
+        if self.random_state is None:
+            self.random_state = int(os.getenv("RANDOM_STATE", 42))
+
+        if self.search_strategy is None:
+            self.search_strategy = os.getenv("SEARCH_STRATEGY", "optuna").lower()
+
+    @staticmethod
+    def get_default_config(base_dir: str = "artifacts") -> "HyperparameterTuningConfig":
+        return HyperparameterTuningConfig(
+            tuned_model_path=os.path.join(base_dir, "tuned_model.pkl"),
+            best_params_path=os.path.join(base_dir, "best_params.json"),
+            random_state=int(os.getenv("RANDOM_STATE", 42)),
+            search_strategy=os.getenv("SEARCH_STRATEGY", "optuna").lower()
+        )

@@ -1,3 +1,4 @@
+# D:\fraud_detection\test\test_model_trainer.py
 import os
 import numpy as np
 from src.entity.config import DataTransformationConfig, ModelTrainerConfig
@@ -10,7 +11,8 @@ if __name__ == "__main__":
     ingestion_artifact = DataIngestionArtifacts(
         train_file_path=r"D:\fraud_detection\artifacts\train.csv",
         test_file_path=r"D:\fraud_detection\artifacts\test.csv",
-        raw_file_path=r"D:\fraud_detection\artifacts\raw_data\raw.csv"
+        raw_file_path=r"D:\fraud_detection\artifacts\raw_data\raw.csv",
+        ingestion_metadata_path=r"D:\fraud_detection\artifacts\raw_data\ingestion_metadata.json"
     )
 
     # Step 2: Run transformation
@@ -24,7 +26,7 @@ if __name__ == "__main__":
     # Step 3: Run model trainer
     model_trainer_config = ModelTrainerConfig.get_default_config()
     trainer = ModelTrainer(model_trainer_config)
-    model_trainer_artifact = trainer.initiate_model_trainer(transformation_artifact)
+    model_trainer_artifact = trainer.initiate_model_training(transformation_artifact)
 
     # Step 4: Print results
     print("\n✅ Model training successful")
