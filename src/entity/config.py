@@ -55,19 +55,48 @@ class DataIngestionConfig:
 
 @dataclass
 class DataTransformationConfig:
-    preprocessor_obj_file: str = None
+    preprocessor_path: str = None
     random_state: int = None
+    transformed_train_path: str = None
+    transformed_test_path: str = None
 
     def __post_init__(self):
-        if self.preprocessor_obj_file is None:
-            self.preprocessor_obj_file = os.getenv("PREPROCESSOR_OBJ_FILE", "artifacts/preprocessor.pkl")
+        if self.preprocessor_path is None:
+            self.preprocessor_path = os.getenv("PREPROCESSOR_PATH", "artifacts/preprocessor.pkl")
+
         if self.random_state is None:
             self.random_state = int(os.getenv("RANDOM_STATE", 42))
+
+        if self.transformed_train_path is None:
+            self.transformed_train_path = os.getenv("TRANSFORMED_TRAIN_PATH", "artifacts/transformed_train.npz")
+
+        if self.transformed_test_path is None:
+            self.transformed_test_path = os.getenv("TRANSFORMED_TEST_PATH", "artifacts/transformed_test.npz")
 
     @staticmethod
     def get_default_config(base_dir: str = "artifacts") -> "DataTransformationConfig":
         return DataTransformationConfig(
-            preprocessor_obj_file=os.path.join(base_dir, "preprocessor.pkl"),
+            preprocessor_path=os.path.join(base_dir, "preprocessor.pkl"),
+            transformed_train_path=os.path.join(base_dir, "transformed_train.npz"),
+            transformed_test_path=os.path.join(base_dir, "transformed_test.npz"),
             random_state=int(os.getenv("RANDOM_STATE", 42))
         )
 
+@dataclass
+class ModelTrainerConfig:
+    trained_model_path: str = None
+    random_state: int = None
+
+    def __post_init__(self):
+        if self.trained_model_path is None:
+            self.trained_model_path = os.getenv("TRAINED_MODEL_PATH", "artifacts/best_model.pkl")
+
+        if self.random_state is None:
+            self.random_state = int(os.getenv("RANDOM_STATE", 42))
+
+    @staticmethod
+    def get_default_config(base_dir: str = "artifacts") -> "ModelTrainerConfig":
+        return ModelTrainerConfig(
+            trained_model_path=os.path.join(base_dir, "best_model.pkl"),
+            random_state=int(os.getenv("RANDOM_STATE", 42))
+        )

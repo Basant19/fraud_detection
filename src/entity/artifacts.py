@@ -1,4 +1,4 @@
-# D:\fraud_detection\src\entity\artifacts.py
+
 
 from dataclasses import dataclass
 
@@ -12,10 +12,10 @@ class DataIngestionArtifacts:
 
 
 
-'''
-# ----------------------------
+
+
 # Transformation Stage Artifacts
-# ----------------------------
+
 @dataclass
 class DataTransformationArtifacts:
     transformed_train_path: str
@@ -23,9 +23,9 @@ class DataTransformationArtifacts:
     preprocessor_path: str
 
 
-# ----------------------------
+
 # Model Training Stage Artifacts
-# ----------------------------
+
 @dataclass
 class ModelTrainerArtifacts:
     trained_model_path: str
@@ -33,6 +33,7 @@ class ModelTrainerArtifacts:
     test_score: float
 
 
+'''
 # ----------------------------
 # Model Evaluation Stage Artifacts
 # ----------------------------
