@@ -8,7 +8,9 @@ if __name__ == "__main__":
     ingestion_artifact = DataIngestionArtifacts(
         train_file_path=r"D:\fraud_detection\artifacts\train.csv",
         test_file_path=r"D:\fraud_detection\artifacts\test.csv",
-        raw_file_path=r"D:\fraud_detection\artifacts\raw_data\raw.csv"
+        raw_file_path=r"D:\fraud_detection\artifacts\raw_data\raw.csv",
+        ingestion_metadata_path=r"D:\fraud_detection\artifacts\raw_data\ingestion_metadata.json"
+
     )
 
     # Load transformation config

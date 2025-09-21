@@ -1,5 +1,8 @@
 import os
 import sys
+import json
+from datetime import datetime
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from pymongo import MongoClient
@@ -14,7 +17,7 @@ logger = get_logger(__name__)
 
 def fetch_collection_as_df(db, collection_name, sample_limit=None):
     """
-    Fetch MongoDB collection as a pandas DataFrame
+    Fetch MongoDB collection as a pandas DataFrame.
     """
     cursor = db[collection_name].find()
     if sample_limit:
@@ -31,8 +34,8 @@ class DataIngestion:
 
     def initiate_data_ingestion(self) -> DataIngestionArtifacts:
         """
-        Reads from MongoDB, merges collections, creates raw.csv, 
-        then splits into train/test.
+        Reads from MongoDB, merges collections, creates raw.csv,
+        splits into train/test, and stores metadata.
         """
         logger.info("Starting data ingestion process...")
 
@@ -91,10 +94,30 @@ class DataIngestion:
                 f"Data ingestion completed: train ({train_set.shape}), test ({test_set.shape})"
             )
 
+            # Save metadata JSON
+            metadata = {
+                "timestamp": datetime.now().isoformat(),
+                "data_source": self.config.data_source,
+                "raw_data_path": self.config.raw_file_path,
+                "train_data_path": self.config.train_file_path,
+                "test_data_path": self.config.test_file_path,
+                "n_raw_rows": len(data),
+                "n_train_rows": len(train_set),
+                "n_test_rows": len(test_set),
+                "test_size": self.config.test_size,
+                "sample_limit": self.config.sample_limit,
+            }
+
+            with open(self.config.ingestion_metadata_path, "w") as f:
+                json.dump(metadata, f, indent=4)
+
+            logger.info(f"Metadata saved at {self.config.ingestion_metadata_path}")
+
             return DataIngestionArtifacts(
                 train_file_path=self.config.train_file_path,
                 test_file_path=self.config.test_file_path,
                 raw_file_path=self.config.raw_file_path,
+                ingestion_metadata_path=self.config.ingestion_metadata_path,
             )
 
         except Exception as e:

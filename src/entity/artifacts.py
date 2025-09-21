@@ -1,7 +1,5 @@
-
-
+#D:\fraud_detection\src\entity\artifacts.py
 from dataclasses import dataclass
-
 
 # Ingestion Stage Artifacts
 @dataclass
@@ -9,20 +7,20 @@ class DataIngestionArtifacts:
     train_file_path: str
     test_file_path: str
     raw_file_path: str
-
-
-
+    ingestion_metadata_path: str
 
 
 # Transformation Stage Artifacts
-
 @dataclass
 class DataTransformationArtifacts:
     transformed_train_path: str
     transformed_test_path: str
     preprocessor_path: str
+    feature_names_path: str   
 
 
+
+'''
 
 # Model Training Stage Artifacts
 
@@ -33,7 +31,7 @@ class ModelTrainerArtifacts:
     test_score: float
 
 
-'''
+
 # ----------------------------
 # Model Evaluation Stage Artifacts
 # ----------------------------
