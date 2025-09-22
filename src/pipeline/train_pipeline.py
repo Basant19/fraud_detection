@@ -1,9 +1,15 @@
 # D:\fraud_detection\src\pipeline\train_pipeline.py
 
-from src.entity.config import DataIngestionConfig, DataTransformationConfig, ModelTrainerConfig
+from src.entity.config import (
+    DataIngestionConfig,
+    DataTransformationConfig,
+    ModelTrainerConfig,
+    HyperparameterTuningConfig,
+)
 from src.components.data_ingestion import DataIngestion
 from src.components.data_transformation import DataTransformation
 from src.components.model_trainer import ModelTrainer
+from src.components.hyperparameter_tuning import HyperparameterTuner
 
 
 def start_training_pipeline():
@@ -37,17 +43,34 @@ def start_training_pipeline():
     print(f" Feature Names: {transformation_artifacts.feature_names_path}")
 
     # ----------------------
-    # 3. Model Training
+    # 3. Baseline Model Training
     # ----------------------
     trainer_config = ModelTrainerConfig.get_default_config()
     model_trainer = ModelTrainer(trainer_config)
 
-    model_artifacts = model_trainer.initiate_model_training(transformation_artifact=transformation_artifacts)
+    model_artifacts = model_trainer.initiate_model_training(
+        transformation_artifact=transformation_artifacts
+    )
 
     print("✅ Model Training Completed")
-    print(f"Best Model Path: {model_artifacts.trained_model_path}")
+    print(f"Best Baseline Model: {model_artifacts.trained_model_path}")
     print(f" Training Score: {model_artifacts.training_score:.4f}")
     print(f" Test (F2) Score: {model_artifacts.test_score:.4f}")
+
+    # ----------------------
+    # 4. Hyperparameter Tuning
+    # ----------------------
+    tuning_config = HyperparameterTuningConfig.get_default_config()
+    tuner = HyperparameterTuner(tuning_config)
+
+    tuning_artifacts = tuner.initiate_hyperparameter_tuning(
+        transformation_artifact=transformation_artifacts
+    )
+
+    print("✅ Hyperparameter Tuning Completed")
+    print(f"Tuned Model Path: {tuning_artifacts.tuned_model_path}")
+    print(f" Best Params Path: {tuning_artifacts.best_params_path}")
+    print(f" Best CV Score (F2): {tuning_artifacts.best_score:.4f}")
 
 
 if __name__ == "__main__":
