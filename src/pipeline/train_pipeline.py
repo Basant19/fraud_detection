@@ -5,11 +5,13 @@ from src.entity.config import (
     DataTransformationConfig,
     ModelTrainerConfig,
     HyperparameterTuningConfig,
+    ModelEvaluationConfig,
 )
 from src.components.data_ingestion import DataIngestion
 from src.components.data_transformation import DataTransformation
 from src.components.model_trainer import ModelTrainer
 from src.components.hyperparameter_tuning import HyperparameterTuner
+from src.components.model_evaluation import ModelEvaluator
 
 
 def start_training_pipeline():
@@ -71,6 +73,29 @@ def start_training_pipeline():
     print(f"Tuned Model Path: {tuning_artifacts.tuned_model_path}")
     print(f" Best Params Path: {tuning_artifacts.best_params_path}")
     print(f" Best CV Score (F2): {tuning_artifacts.best_score:.4f}")
+
+    # ----------------------
+    # ----------------------
+    # 5. Model Evaluation
+    # ----------------------
+    evaluation_config = ModelEvaluationConfig.get_default_config()
+    # Use the baseline trained model or the tuned model for evaluation
+    best_model_path = tuning_artifacts.tuned_model_path  # or model_artifacts.trained_model_path
+    evaluator = ModelEvaluator(evaluation_config, best_model_path)
+
+    evaluation_artifacts = evaluator.evaluate_model(
+    transformation_artifact=transformation_artifacts,
+    trainer_artifact=model_artifacts
+    )
+
+
+
+
+    print("✅ Model Evaluation Completed")
+    print(f"Evaluation Report: {evaluation_artifacts.evaluation_report_path}")
+    print(f" Best Model Path: {evaluation_artifacts.best_model_path}")
+    print(f" Is Model Accepted? {evaluation_artifacts.is_model_accepted}")
+    print(f" Acceptance Criteria: {evaluation_artifacts.acceptance_criteria}")
 
 
 if __name__ == "__main__":
