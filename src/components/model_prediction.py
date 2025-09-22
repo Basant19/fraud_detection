@@ -1,7 +1,5 @@
-#D:\fraud_detection\src\components\model_prediction.py
-
+# src/components/model_prediction.py
 import sys
-
 import os
 import json
 import pickle
@@ -18,21 +16,17 @@ from src.exception import CustomException
 
 class ModelPrediction:
     """
-    Handles model inference (fraud detection) for single or batch transactions.
-    Ensures preprocessing and feature engineering consistency.
+    Handles model inference for single or batch transactions using a preprocessor pipeline.
     """
 
     def __init__(self, config: ModelPredictionConfig = None):
         self.config = config or ModelPredictionConfig.get_default_config()
-
-        # Use dedicated subfolder for predictions
         self.prediction_dir = os.path.join("artifacts", "model_prediction")
         os.makedirs(self.prediction_dir, exist_ok=True)
 
-        # Load model, preprocessor, feature names
+        # Load model and preprocessor pipeline
         self.model = self._load_pickle(self.config.trained_model_path, "model")
         self.preprocessor = self._load_pickle(self.config.preprocessor_path, "preprocessor")
-        self.feature_names = self._load_feature_names(self.config.feature_names_path)
 
     def _load_pickle(self, path: str, name: str):
         try:
@@ -43,24 +37,7 @@ class ModelPrediction:
         except Exception as e:
             raise CustomException(e, sys) from e
 
-    def _load_feature_names(self, path: str):
-        try:
-            with open(path, "r") as f:
-                names = json.load(f)
-            logging.info(f"✅ Loaded feature names from {path}")
-            return names
-        except Exception as e:
-            raise CustomException(e, sys) from e
-
     def predict(self, input_data: Union[pd.DataFrame, dict, list]) -> ModelPredictionArtifacts:
-        """
-        Run fraud detection prediction.
-        Args:
-            input_data: transaction(s) as dict, list[dict], or pandas DataFrame.
-        Returns:
-            ModelPredictionArtifacts with predictions, probabilities, and report path.
-        """
-
         # Convert input into DataFrame
         if isinstance(input_data, dict):
             df = pd.DataFrame([input_data])
@@ -73,25 +50,22 @@ class ModelPrediction:
 
         logging.info(f"Received input data with shape: {df.shape}")
 
-        # Preprocess data
+        # Preprocess using pipeline
         try:
-            transformed = self.preprocessor.transform(df)
-            logging.info(f"✅ Applied preprocessing to input data")
+            X_transformed = self.preprocessor.transform(df)
+            logging.info(f"✅ Applied preprocessing pipeline")
         except Exception as e:
             raise CustomException(f"Preprocessing failed: {e}", sys) from e
 
         # Generate predictions & probabilities
         try:
-            predictions = self.model.predict(transformed)
-            if hasattr(self.model, "predict_proba"):
-                probabilities = self.model.predict_proba(transformed)[:, 1]
-            else:
-                probabilities = np.zeros(len(predictions))
+            predictions = self.model.predict(X_transformed)
+            probabilities = self.model.predict_proba(X_transformed)[:, 1] if hasattr(self.model, "predict_proba") else np.zeros(len(predictions))
             logging.info("✅ Generated predictions and probabilities")
         except Exception as e:
             raise CustomException(f"Prediction failed: {e}", sys) from e
 
-        # Save results to prediction report
+        # Save prediction report
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         report_path = os.path.join(self.prediction_dir, f"prediction_report_{timestamp}.json")
 
@@ -109,9 +83,9 @@ class ModelPrediction:
         except Exception as e:
             raise CustomException(f"Failed to save prediction report: {e}", sys) from e
 
-        # Return artifacts
         return ModelPredictionArtifacts(
             predictions=predictions,
             probabilities=probabilities,
-            prediction_report_path=report_path
+            prediction_report_path=report_path,
+            prediction_dir=self.prediction_dir 
         )

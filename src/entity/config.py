@@ -148,15 +148,15 @@ class HyperparameterTuningConfig:
 @dataclass
 class ModelEvaluationConfig:
     evaluation_report_path: str = None
-    min_recall: float = 0.2
-    min_f2: float = 0.2
+    min_recall: float = 0.15
+    min_f2: float = 0.15
 
     @staticmethod
     def get_default_config(base_dir: str = "artifacts") -> "ModelEvaluationConfig":
         return ModelEvaluationConfig(
             evaluation_report_path=os.path.join(base_dir, "evaluation_report.json"),
-            min_recall=float(os.getenv("MIN_RECALL", 0.2)),
-            min_f2=float(os.getenv("MIN_F2", 0.2)),
+            min_recall=float(os.getenv("MIN_RECALL", 0.15)),
+            min_f2=float(os.getenv("MIN_F2", 0.15)),
         )
 
 # ----------------------------

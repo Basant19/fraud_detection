@@ -59,5 +59,5 @@ class ModelPredictionArtifacts:
     predictions: Any
     probabilities: Any
     prediction_report_path: str
-    prediction_dir: str   # NEW: folder path for all prediction reports
+    prediction_dir: str  
 
