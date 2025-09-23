@@ -60,7 +60,10 @@ class ModelPrediction:
         # Generate predictions & probabilities
         try:
             predictions = self.model.predict(X_transformed)
-            probabilities = self.model.predict_proba(X_transformed)[:, 1] if hasattr(self.model, "predict_proba") else np.zeros(len(predictions))
+            probabilities = (
+                                self.model.predict_proba(X_transformed) if hasattr(self.model, "predict_proba")
+                                else np.zeros((len(predictions), 2))
+                            )
             logging.info("✅ Generated predictions and probabilities")
         except Exception as e:
             raise CustomException(f"Prediction failed: {e}", sys) from e
